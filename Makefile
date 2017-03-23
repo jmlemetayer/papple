@@ -20,7 +20,7 @@ LDLIBS		?=
 # Default target
 all: papple
 
-papple: main.o
+papple: main.o logger.o
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 # Manage object with dependencies
