@@ -77,6 +77,10 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+#ifdef WITH_SYSLOG
+	openlog(PACKAGE_NAME, LOG_PERROR | LOG_PID, LOG_USER);
+#endif
+
 	notice("Starting " PACKAGE_STRING);
 
 	debug("using interface=%s", interface);
