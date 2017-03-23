@@ -1,0 +1,10 @@
+# Normal rules
+.*
+*.o
+*.d
+
+# Git files that we don't want to ignore even it they are dot-files
+!/.gitignore
+
+# Project files
+/papple
