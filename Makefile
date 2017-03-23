@@ -17,6 +17,8 @@ CPPFLAGS	?=
 LDFLAGS		?=
 LDLIBS		?=
 
+override CPPFLAGS += -DVERSION=\"$(shell git describe --always --dirty)\"
+
 # Default target
 all: papple
 
