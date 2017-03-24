@@ -10,10 +10,11 @@
 
 int main(int argc, char **argv)
 {
+	int status = EXIT_FAILURE;
 	char *interface = NULL;
 	char *service = NULL;
+	int listener = -1;
 	int opt, optidx;
-	int listener;
 
 	const struct option lopt[] = {
 		{"version",    no_argument,        NULL,  0 },
@@ -44,7 +45,8 @@ int main(int argc, char **argv)
 		case 0:
 			if (optidx == 0) {
 				fprintf(stdout, PACKAGE_STRING "\n");
-				exit(EXIT_SUCCESS);
+				status = EXIT_SUCCESS;
+				goto exit;
 			}
 
 		default:
@@ -65,19 +67,19 @@ int main(int argc, char **argv)
 			        PACKAGE_NAME " home page: <" PACKAGE_URL ">\n"
 			        "Report " PACKAGE_NAME " bugs"
 			        " to <" PACKAGE_BUGREPORT ">\n");
-			exit(EXIT_FAILURE);
+			goto exit;
 		}
 	}
 
 	if (interface == NULL &&
 	    (interface = strdup(DEFAULT_INTERFACE)) == NULL) {
 		perror("Failed to duplicate interface");
-		exit(EXIT_FAILURE);
+		goto exit;
 
 	} else if (service == NULL &&
 	           (service = strdup(DEFAULT_SERVICE)) == NULL) {
 		perror("Failed to duplicate service");
-		exit(EXIT_FAILURE);
+		goto exit;
 	}
 
 #ifdef WITH_SYSLOG
@@ -88,10 +90,13 @@ int main(int argc, char **argv)
 
 	if ((listener = get_listener(interface, service)) < 0) {
 		error("Failed to get listener");
+		goto exit;
 	}
 
+	status = EXIT_SUCCESS;
+exit:
 	close(listener);
 	free(interface);
 	free(service);
-	exit(EXIT_SUCCESS);
+	exit(status);
 }
