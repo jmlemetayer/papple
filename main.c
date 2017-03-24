@@ -8,6 +8,20 @@
 #include "logger.h"
 #include "listener.h"
 
+static void usage(void)
+{
+	fprintf(stderr,
+	        "Usage: " PACKAGE_NAME " [OPTIONS]...\n\n"
+	        "-i, --interface IF      Use the specified interface to bind.\n"
+	        "                          (default is " DEFAULT_INTERFACE ")\n"
+	        "-s, --service SRV       Use the specified service to bind.\n"
+	        "                          (default is " DEFAULT_SERVICE ")\n"
+	        "    --version           Display version.\n"
+	        "    --help              Display this help screen.\n\n"
+	        PACKAGE_NAME " home page: <" PACKAGE_URL ">\n"
+	        "Report " PACKAGE_NAME " bugs to <" PACKAGE_BUGREPORT ">\n");
+}
+
 int main(int argc, char **argv)
 {
 	int status = EXIT_FAILURE;
@@ -50,23 +64,7 @@ int main(int argc, char **argv)
 			}
 
 		default:
-			fprintf(stderr,
-			        "Usage: " PACKAGE_NAME " [OPTIONS]...\n\n"
-			        "-i, --interface INTERFACE        "
-			        "Use the specified interface to bind.\n"
-			        "                                 "
-			        " (default is " DEFAULT_INTERFACE ")\n"
-			        "-s, --service SERVICE            "
-			        "Use the specified service to bind.\n"
-			        "                                 "
-			        " (default is " DEFAULT_SERVICE ")\n"
-			        "    --version                    "
-			        "Display version.\n"
-			        "    --help                       "
-			        "Display this help screen.\n\n"
-			        PACKAGE_NAME " home page: <" PACKAGE_URL ">\n"
-			        "Report " PACKAGE_NAME " bugs"
-			        " to <" PACKAGE_BUGREPORT ">\n");
+			usage();
 			goto exit;
 		}
 	}
