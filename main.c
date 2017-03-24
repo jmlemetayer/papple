@@ -1,4 +1,5 @@
 #include <getopt.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +8,8 @@
 #include "config.h"
 #include "logger.h"
 #include "listener.h"
+
+static int running = 1;
 
 static void usage(void)
 {
@@ -20,6 +23,42 @@ static void usage(void)
 	        "    --help              Display this help screen.\n\n"
 	        PACKAGE_NAME " home page: <" PACKAGE_URL ">\n"
 	        "Report " PACKAGE_NAME " bugs to <" PACKAGE_BUGREPORT ">\n");
+}
+
+static void signal_handler(int signal)
+{
+	switch (signal) {
+	case SIGINT:
+	case SIGQUIT:
+	case SIGTERM:
+		notice("Stopping " PACKAGE_NAME);
+		running = 0;
+		break;
+	}
+}
+
+static int handle_signals(void)
+{
+	struct sigaction signal_action;
+
+	signal_action.sa_handler = signal_handler;
+	sigemptyset(&signal_action.sa_mask);
+	signal_action.sa_flags = 0;
+
+	if (sigaction(SIGINT, &signal_action, NULL) < 0) {
+		perror("Failed to handle SIGINT");
+		return -1;
+
+	} else if (sigaction(SIGQUIT, &signal_action, NULL) < 0) {
+		perror("Failed to handle SIGQUIT");
+		return -1;
+
+	} else if (sigaction(SIGTERM, &signal_action, NULL) < 0) {
+		perror("Failed to handle SIGTERM");
+		return -1;
+	}
+
+	return 0;
 }
 
 int main(int argc, char **argv)
@@ -78,6 +117,9 @@ int main(int argc, char **argv)
 	           (service = strdup(DEFAULT_SERVICE)) == NULL) {
 		perror("Failed to duplicate service");
 		goto exit;
+
+	} else if (handle_signals() < 0) {
+		goto exit;
 	}
 
 #ifdef WITH_SYSLOG
@@ -89,6 +131,10 @@ int main(int argc, char **argv)
 	if ((listener = get_listener(interface, service)) < 0) {
 		error("Failed to get listener");
 		goto exit;
+	}
+
+	while (running == 1) {
+		sleep(1);
 	}
 
 	status = EXIT_SUCCESS;
