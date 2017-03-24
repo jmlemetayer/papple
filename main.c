@@ -3,13 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "config.h"
 #include "logger.h"
-#include "listener.h"
-
-static int running = 1;
+#include "server.h"
 
 static void usage(void)
 {
@@ -32,7 +29,7 @@ static void signal_handler(int signal)
 	case SIGQUIT:
 	case SIGTERM:
 		notice("Stopping " PACKAGE_NAME);
-		running = 0;
+		stop_server();
 		break;
 	}
 }
@@ -66,7 +63,6 @@ int main(int argc, char **argv)
 	int status = EXIT_FAILURE;
 	char *interface = NULL;
 	char *service = NULL;
-	int listener = -1;
 	int opt, optidx;
 
 	const struct option lopt[] = {
@@ -128,18 +124,14 @@ int main(int argc, char **argv)
 
 	notice("Starting " PACKAGE_STRING);
 
-	if ((listener = get_listener(interface, service)) < 0) {
-		error("Failed to get listener");
-		goto exit;
+	if (start_server(interface, service) < 0) {
+		error("Failed to start server");
+
+	} else {
+		status = EXIT_SUCCESS;
 	}
 
-	while (running == 1) {
-		sleep(1);
-	}
-
-	status = EXIT_SUCCESS;
 exit:
-	close(listener);
 	free(interface);
 	free(service);
 	exit(status);
