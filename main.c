@@ -2,15 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "config.h"
 #include "logger.h"
+#include "listener.h"
 
 int main(int argc, char **argv)
 {
 	char *interface = NULL;
 	char *service = NULL;
 	int opt, optidx;
+	int listener;
 
 	const struct option lopt[] = {
 		{"version",    no_argument,        NULL,  0 },
@@ -83,9 +86,11 @@ int main(int argc, char **argv)
 
 	notice("Starting " PACKAGE_STRING);
 
-	debug("using interface=%s", interface);
-	debug("using service=%s", service);
+	if ((listener = get_listener(interface, service)) < 0) {
+		error("Failed to get listener");
+	}
 
+	close(listener);
 	free(interface);
 	free(service);
 	exit(EXIT_SUCCESS);

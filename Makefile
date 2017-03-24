@@ -22,7 +22,7 @@ override CPPFLAGS += -DVERSION=\"$(shell git describe --always --dirty)\"
 # Default target
 all: papple
 
-papple: main.o logger.o
+papple: main.o logger.o listener.o
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 # Manage object with dependencies
