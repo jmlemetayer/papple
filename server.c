@@ -1,6 +1,8 @@
 #include "server.h"
 
 #include <errno.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/select.h>
@@ -9,6 +11,92 @@
 
 #include "logger.h"
 #include "listener.h"
+
+enum http_status {
+	HTTP_200,
+	HTTP_201,
+	HTTP_202,
+	HTTP_204,
+	HTTP_301,
+	HTTP_302,
+	HTTP_304,
+	HTTP_400,
+	HTTP_401,
+	HTTP_403,
+	HTTP_404,
+	HTTP_500,
+	HTTP_501,
+	HTTP_502,
+	HTTP_503,
+};
+
+static struct http_status_code {
+	unsigned short status;
+	char *reason;
+} http_status_codes[] = {
+	{ 200, "OK" },
+	{ 201, "Created" },
+	{ 202, "Accepted" },
+	{ 204, "No Content" },
+	{ 301, "Moved Permanently" },
+	{ 302, "Moved Temporarily" },
+	{ 304, "Not Modified" },
+	{ 400, "Bad Request" },
+	{ 401, "Unauthorized" },
+	{ 403, "Forbidden" },
+	{ 404, "Not Found" },
+	{ 500, "Internal Server Error" },
+	{ 501, "Not Implemented" },
+	{ 502, "Bad Gateway" },
+	{ 503, "Service Unavailable" },
+};
+
+ssize_t aprintf(char **buffer, const char *format, ...)
+{
+	ssize_t length;
+	va_list ap;
+
+	va_start(ap, format);
+	length = vsnprintf(NULL, 0, format, ap);
+	va_end(ap);
+
+	if ((*buffer = malloc(length + 1)) == NULL) {
+		eerror("Failed to allocate memory");
+		return -1;
+	}
+
+	va_start(ap, format);
+	vsnprintf(*buffer, length + 1, format, ap);
+	va_end(ap);
+
+	return length;
+}
+
+static int write_response(int client, enum http_status status)
+{
+	struct http_status_code http = http_status_codes[status];
+	ssize_t length;
+	char *response;
+
+	if ((length = aprintf(&response,
+	                      "HTTP/1.0 %u %s\r\n"
+	                      "\r\n"
+	                      "%u %s",
+	                      http.status, http.reason,
+	                      http.status, http.reason)) < 0) {
+		error("Failed to format response");
+		return -1;
+
+	} else if (write(client, response, length) < 0) {
+		eerror("Failed to write");
+		free(response);
+		return -1;
+	}
+
+	dump("response", response, length);
+	free(response);
+	return 0;
+}
 
 static int data_available(int client)
 {
@@ -108,6 +196,7 @@ int start_server(const char *interface, const char *service)
 
 		} else {
 			dump("request", request, length);
+			write_response(client, HTTP_404);
 			free(request);
 		}
 
