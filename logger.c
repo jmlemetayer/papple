@@ -8,15 +8,15 @@
 
 void dump(const char *prefix, const void *buf, size_t len)
 {
-	char hex[2 * DUMPSIZE + 1], *h;
+	char hex[3 * DUMPSIZE + 1], *h;
 	char str[DUMPSIZE + 1], *s;
 	size_t i;
 
 	for (i = 0; i < len;) {
 		for (h = hex, s = str;
 		     h + 1 < hex + sizeof(hex) && i < len;
-		     h += 2, s++, i++) {
-			snprintf(h, 3, "%.2X", val(buf, i));
+		     h += 3, s++, i++) {
+			snprintf(h, 4, "%.2X ", val(buf, i));
 
 			if (val(buf, i) < 0x20 || val(buf, i) > 0x7E) {
 				snprintf(s, 2, ".");
@@ -26,7 +26,7 @@ void dump(const char *prefix, const void *buf, size_t len)
 			}
 		}
 
-		debug("%6s: %-*s |%s|", prefix, 2 * DUMPSIZE, hex, str);
+		debug("%10s: %-*s |%s|", prefix, 3 * DUMPSIZE, hex, str);
 	}
 }
 #endif
