@@ -1,6 +1,11 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
+/* Version number of package */
+#ifndef VERSION
+#define VERSION			"1.0-devel"
+#endif
+
 /* Define to the full name of this package. */
 #define PACKAGE_NAME            "papple"
 
